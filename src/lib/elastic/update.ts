@@ -6,7 +6,7 @@ import { ElasticClient } from './elastic-client';
 import {
 	CanNotDeleteDocumentAtElasticSearchException as CanNotDeleteDocumentAtElasticSearchException,
 	CanNotGetDocumentFromMongoDBException,
-} from '../errors/errors';
+} from '../errors';
 
 export class UpdateElastic {
 	private mongoDbClient: MongoDbClient;

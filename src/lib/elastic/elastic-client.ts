@@ -1,6 +1,6 @@
 import { Client } from '@elastic/elasticsearch';
 import { VariableNotSetException } from '../errors/errors';
-import { ElasticOptions } from '../types/api';
+import { ElasticOptions } from '../types';
 
 export class ElasticClient {
 	private elasticOptions: ElasticOptions;

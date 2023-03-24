@@ -1,8 +1,8 @@
 import { ChangeStreamDocument } from 'mongodb';
-import { CreateElastic, DeleteElastic, UpdateElastic } from './elastic/api';
+import { CreateElastic, DeleteElastic, UpdateElastic } from './elastic';
 import { ElasticClient } from './elastic/elastic-client';
 import { MongoDbClient } from './mongo/mongodb-client';
-import { ElasticOptions, ElasticQueryResult, MongoDbOptions } from './types/api';
+import { ElasticOptions, ElasticQueryResult, MongoDbOptions } from './types';
 
 export class SyncMongoDbWithElasticSearch {
 	mongoDbClient: MongoDbClient;

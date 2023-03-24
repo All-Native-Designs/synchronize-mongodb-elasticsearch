@@ -1,5 +1,5 @@
 import { ChangeStreamDeleteDocument } from 'mongodb';
-import { ElasticClient } from './api';
+import { ElasticClient } from '.';
 import { ElasticQueryResult } from '../types/result.type';
 import { DeleteRequest, DeleteResponse } from '@elastic/elasticsearch/lib/api/types';
 
