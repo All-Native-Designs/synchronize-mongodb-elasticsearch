@@ -1,0 +1,14 @@
+{
+	"include": ["src/index.ts"],
+	"compilerOptions": {
+		"target": "es2018",
+		"moduleResolution": "node", // don't have to import actual filenames, can import extensionless files
+		"module": "commonjs",
+		"declaration": true, // generate .d.ts files
+		"sourceMap": true, // generate source map
+		"outDir": "dist", // output compiled js, d.ts, and source map to dist folder
+		"strict": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true
+	}
+}
