@@ -8,8 +8,8 @@ Add the following script to your main file or where you want to start synchroniz
 
 ```javascript
 const mongoOptions: MongoOptions = {
-	uri: 'db-uri,
-	dbName: 'db-name,
+	uri: 'db-uri',
+	dbName: 'db-name',
 	collections: ['collection-1'],
 };
 const elasticOptions: ElasticOptions = {
