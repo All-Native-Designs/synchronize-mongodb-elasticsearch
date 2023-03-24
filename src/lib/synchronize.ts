@@ -5,24 +5,24 @@ import { MongoDbClient } from './mongo/mongodb-client';
 import { ElasticOptions, ElasticQueryResult, MongoDbOptions } from './types/api';
 
 export class SyncMongoDbWithElasticSearch {
-	mongodbClient: MongoDbClient;
+	mongoDbClient: MongoDbClient;
 	elasticClient: ElasticClient;
 	changeEvents: ChangeStreamDocument[] = [];
 
-	constructor(mongoOptions: MongoDbOptions, elasticOptions: ElasticOptions) {
-		this.mongodbClient = new MongoDbClient(mongoOptions);
+	constructor(mongoDbOptions: MongoDbOptions, elasticOptions: ElasticOptions) {
+		this.mongoDbClient = new MongoDbClient(mongoDbOptions);
 		this.elasticClient = new ElasticClient(elasticOptions);
 	}
 
 	async start() {
 		// create mongodb connection
-		await this.mongodbClient.createConnection();
+		await this.mongoDbClient.createConnection();
 
 		// create elastic search client
 		this.elasticClient.createConnection();
 
 		// get change stream of database collections
-		const collectionsChangeStream = this.mongodbClient.getCollectionsStream();
+		const collectionsChangeStream = this.mongoDbClient.getCollectionsStream();
 
 		// start watching on changes for each collection
 		for (const collectionChangeStream of collectionsChangeStream) {
@@ -51,7 +51,7 @@ export class SyncMongoDbWithElasticSearch {
 				const createElastic = new CreateElastic(this.elasticClient);
 				return await createElastic.handle(changeEvent);
 			case 'update':
-				const updateElastic = new UpdateElastic(this.mongodbClient, this.elasticClient);
+				const updateElastic = new UpdateElastic(this.mongoDbClient, this.elasticClient);
 				return await updateElastic.handle(changeEvent);
 			case 'delete':
 				const deleteElastic = new DeleteElastic(this.elasticClient);

@@ -9,10 +9,10 @@ import {
 } from '../errors/errors';
 
 export class UpdateElastic {
-	private mongodbClient: MongoDbClient;
+	private mongoDbClient: MongoDbClient;
 	private elasticClient: ElasticClient;
-	constructor(mongodbClient: MongoDbClient, elasticClient: ElasticClient) {
-		this.mongodbClient = mongodbClient;
+	constructor(mongoDbClient: MongoDbClient, elasticClient: ElasticClient) {
+		this.mongoDbClient = mongoDbClient;
 		this.elasticClient = elasticClient;
 	}
 
@@ -20,7 +20,7 @@ export class UpdateElastic {
 		// instead of updating the document at ElasticSearch,
 		// we delete the old document and insert the new one
 		const getNewDocument = async () =>
-			await this.mongodbClient
+			await this.mongoDbClient
 				.getDb()
 				.collection(changeEvent.ns.coll)
 				.findOne({ _id: changeEvent.documentKey._id });
