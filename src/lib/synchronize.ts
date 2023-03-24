@@ -1,17 +1,8 @@
-import {
-	MongoClient,
-	Db,
-	ChangeStream,
-	ChangeStreamDocument,
-	Collection,
-	ChangeStreamInsertDocument,
-	ChangeStreamCreateDocument,
-} from 'mongodb';
-import { CanNotCreateMongoClientException, CollectionNotFoundException, VariableNotSetException } from './errors';
-import { ElasticOptions, MongoOptions } from './interfaces';
-import { ElasticClient } from './elastic-client';
-import { MongoDbClient } from './mongodb-client';
 import { CreateRequest } from '@elastic/elasticsearch/lib/api/types';
+import { ChangeStreamDocument, ChangeStreamInsertDocument } from 'mongodb';
+import { ElasticClient } from './elastic-client';
+import { ElasticOptions, MongoOptions } from './interfaces';
+import { MongoDbClient } from './mongodb-client';
 
 export class SyncMongoDbWithElasticSearch {
 	mongodbClient: MongoDbClient;
@@ -25,24 +16,14 @@ export class SyncMongoDbWithElasticSearch {
 	async start() {
 		// create mongodb connection
 		await this.mongodbClient.createConnection();
+
+		// create elastic search client
 		this.elasticClient.createConnection();
 
-		// {
-		// 	_id: {
-		// 	  _data: '82641D49A2000000012B022C0100296E5A10045945F9D8724A4984A1F0D65B4B8FA02B46645F69640064641D49A2717B4DD968E146170004'
-		// 	},
-		// 	operationType: 'insert',
-		// 	clusterTime: new Timestamp({ t: 1679640994, i: 1 }),
-		// 	wallTime: 2023-03-24T06:56:34.188Z,
-		// 	fullDocument: {
-		// 	  _id: new ObjectId("641d49a2717b4dd968e14617"),
-		// 	  name: 'test7',
-		// 	  language: 'en'
-		// 	},
-		// 	ns: { db: 'sp-production', coll: 'standardname-synonyms' },
-		// 	documentKey: { _id: new ObjectId("641d49a2717b4dd968e14617") }
-		// }
+		// get change stream of database collections
 		const collectionsChangeStream = this.mongodbClient.getCollectionsStream();
+
+		// start watching on changes for each collection
 		for (const collectionChangeStream of collectionsChangeStream) {
 			collectionChangeStream.on('change', (changeEvent) => {
 				this.updateTarget(changeEvent);

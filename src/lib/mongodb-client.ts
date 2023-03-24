@@ -1,6 +1,6 @@
+import { ChangeStream, Db, MongoClient } from 'mongodb';
 import { CanNotCreateMongoClientException, CollectionNotFoundException, VariableNotSetException } from './errors';
 import { MongoOptions } from './interfaces';
-import { MongoClient, Db, ChangeStream, ChangeStreamDocument, Collection } from 'mongodb';
 
 export class MongoDbClient {
 	private mongoOptions: MongoOptions;
@@ -19,7 +19,6 @@ export class MongoDbClient {
 
 	private getMongoClient() {
 		try {
-			// const url = 'mongodb://localhost:37017,localhost:37018,localhost:37019/?replicaSet=rs0';
 			const client = new MongoClient(this.mongoOptions.uri);
 			return client;
 		} catch (error) {
