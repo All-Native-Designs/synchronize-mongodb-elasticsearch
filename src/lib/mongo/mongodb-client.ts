@@ -4,19 +4,19 @@ import {
 	CollectionNotFoundException,
 	VariableNotSetException,
 } from '../errors/errors';
-import { MongoOptions } from '../types/mongo.type';
+import { MongoDbOptions } from '../types/mongo.type';
 
 export class MongoDbClient {
-	private mongoOptions: MongoOptions;
+	private mongoOptions: MongoDbOptions;
 	client!: MongoClient;
 	private db!: Db;
 
-	constructor(mongoOptions: MongoOptions) {
+	constructor(mongoOptions: MongoDbOptions) {
 		this.checkOptions(mongoOptions);
 		this.mongoOptions = mongoOptions;
 	}
 
-	private checkOptions(options: MongoOptions) {
+	private checkOptions(options: MongoDbOptions) {
 		if (options.uri.length === 0) throw new VariableNotSetException('MongoDb uri');
 		if (options.dbName.length === 0) throw new VariableNotSetException('MongoDb database name');
 	}

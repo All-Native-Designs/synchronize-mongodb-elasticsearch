@@ -2,14 +2,14 @@ import { ChangeStreamDocument } from 'mongodb';
 import { CreateElastic, DeleteElastic, UpdateElastic } from './elastic/api';
 import { ElasticClient } from './elastic/elastic-client';
 import { MongoDbClient } from './mongo/mongodb-client';
-import { ElasticOptions, ElasticQueryResult, MongoOptions } from './types/api';
+import { ElasticOptions, ElasticQueryResult, MongoDbOptions } from './types/api';
 
 export class SyncMongoDbWithElasticSearch {
 	mongodbClient: MongoDbClient;
 	elasticClient: ElasticClient;
 	changeEvents: ChangeStreamDocument[] = [];
 
-	constructor(mongoOptions: MongoOptions, elasticOptions: ElasticOptions) {
+	constructor(mongoOptions: MongoDbOptions, elasticOptions: ElasticOptions) {
 		this.mongodbClient = new MongoDbClient(mongoOptions);
 		this.elasticClient = new ElasticClient(elasticOptions);
 	}
