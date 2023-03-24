@@ -1,12 +1,13 @@
-import { CreateRequest } from '@elastic/elasticsearch/lib/api/types';
-import { ChangeStreamDocument, ChangeStreamInsertDocument } from 'mongodb';
-import { ElasticClient } from './elastic-client';
-import { ElasticOptions, MongoOptions } from './interfaces';
-import { MongoDbClient } from './mongodb-client';
+import { ChangeStreamDocument } from 'mongodb';
+import { CreateElastic, DeleteElastic, UpdateElastic } from './elastic/api';
+import { ElasticClient } from './elastic/elastic-client';
+import { MongoDbClient } from './mongo/mongodb-client';
+import { ElasticOptions, ElasticQueryResult, MongoOptions } from './types/api';
 
 export class SyncMongoDbWithElasticSearch {
 	mongodbClient: MongoDbClient;
 	elasticClient: ElasticClient;
+	changeEvents: ChangeStreamDocument[] = [];
 
 	constructor(mongoOptions: MongoOptions, elasticOptions: ElasticOptions) {
 		this.mongodbClient = new MongoDbClient(mongoOptions);
@@ -26,28 +27,46 @@ export class SyncMongoDbWithElasticSearch {
 		// start watching on changes for each collection
 		for (const collectionChangeStream of collectionsChangeStream) {
 			collectionChangeStream.on('change', (changeEvent) => {
-				this.updateTarget(changeEvent);
+				this.manageEvents(changeEvent);
 			});
 		}
 	}
 
-	private updateTarget(changeEvent: ChangeStreamDocument) {
-		switch (changeEvent.operationType) {
-			case 'insert':
-				this.createDocumentAtTarget(changeEvent);
-				break;
-
-			default:
-				break;
+	private async manageEvents(changeEvent: ChangeStreamDocument) {
+		this.changeEvents.push(changeEvent);
+		while (this.changeEvents.length > 0) {
+			const result = await this.syncWithElastic(this.changeEvents[0]);
+			this.handleResult(result);
 		}
 	}
 
-	private createDocumentAtTarget(changeEvent: ChangeStreamInsertDocument) {
-		const createRequest: CreateRequest = {
-			id: changeEvent.fullDocument._id,
-			index: changeEvent.ns.coll,
-			document: changeEvent.fullDocument,
+	/**
+	 * TODO: implement other operation types
+	 * @param changeEvent
+	 * @returns
+	 */
+	private async syncWithElastic(changeEvent: ChangeStreamDocument): Promise<ElasticQueryResult> {
+		switch (changeEvent.operationType) {
+			case 'insert':
+				const createElastic = new CreateElastic(this.elasticClient);
+				return await createElastic.handle(changeEvent);
+			case 'update':
+				const updateElastic = new UpdateElastic(this.mongodbClient, this.elasticClient);
+				return await updateElastic.handle(changeEvent);
+			case 'delete':
+				const deleteElastic = new DeleteElastic(this.elasticClient);
+				return await deleteElastic.handle(changeEvent);
+			default:
+				break;
+		}
+		return {
+			ok: false,
 		};
-		this.elasticClient.client.create(createRequest);
+	}
+
+	private handleResult(result: ElasticQueryResult) {
+		if (result?.ok) {
+			this.changeEvents.shift();
+		}
 	}
 }

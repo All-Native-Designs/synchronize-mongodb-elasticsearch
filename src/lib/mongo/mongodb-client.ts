@@ -1,6 +1,10 @@
 import { ChangeStream, Db, MongoClient } from 'mongodb';
-import { CanNotCreateMongoClientException, CollectionNotFoundException, VariableNotSetException } from './errors';
-import { MongoOptions } from './interfaces';
+import {
+	CanNotCreateMongoClientException,
+	CollectionNotFoundException,
+	VariableNotSetException,
+} from '../errors/errors';
+import { MongoOptions } from '../types/mongo.type';
 
 export class MongoDbClient {
 	private mongoOptions: MongoOptions;
@@ -30,6 +34,10 @@ export class MongoDbClient {
 		const client = this.getMongoClient();
 		this.client = await client.connect();
 		this.db = client.db(this.mongoOptions.dbName);
+	}
+
+	getDb() {
+		return this.db;
 	}
 
 	getCollectionsStream(): ChangeStream[] {

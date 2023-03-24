@@ -3,7 +3,3 @@ export interface MongoOptions {
 	dbName: string;
 	collections?: string[];
 }
-
-export interface ElasticOptions {
-	uri: string;
-}

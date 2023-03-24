@@ -1,6 +1,6 @@
 {
 	"name": "synchronize-mongodb-elasticsearch",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"description": "This package is for watching MongoDB change events and synchronize changes with ElasticSearch.",
 	"main": "dist/index.js",
 	"module": "esm/index.js",
@@ -22,7 +22,7 @@
 		"type": "git",
 		"url": "https://github.com/majid-rafei/synchronize-mongodb-elasticsearch.git"
 	},
-	"author": "Majid Rafei <rafei@ymail.com>, Stoyan Atanasov",
+	"author": "D&TS GmbH, Majid Rafei <rafei@ymail.com>, Stoyan Atanasov",
 	"license": "ISC",
 	"dependencies": {
 		"@elastic/elasticsearch": "^8.6.0",
