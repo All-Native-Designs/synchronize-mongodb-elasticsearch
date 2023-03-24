@@ -10,6 +10,11 @@
 		"esm",
 		"src"
 	],
+	"keywords": [
+		"mongodb",
+		"elasticsearch",
+		"synchronize"
+	],
 	"scripts": {
 		"clean": "rimraf dist",
 		"prebuild": "npm run clean",

@@ -7,7 +7,7 @@ This package is for watching MongoDB change events and synchronize changes with 
 Add the following script to your main file or where you want to start synchronizing MongoDB with ElasticSearch.
 
 ```javascript
-const mongoOptions: MongoOptions = {
+const mongoDbOptions: MongoDbOptions = {
 	uri: 'db-uri',
 	dbName: 'db-name',
 	collections: ['collection-1'],
@@ -23,6 +23,6 @@ const elasticOptions: ElasticOptions = {
 	// 	rejectUnauthorized: false,
 	// },
 };
-const syncDbWithElasticsearch = new SyncMongoDbWithElasticSearch(mongoOptions, elasticOptions);
+const syncDbWithElasticsearch = new SyncMongoDbWithElasticSearch(mongoDbOptions, elasticOptions);
 syncDbWithElasticsearch.start();
 ```
