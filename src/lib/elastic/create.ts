@@ -1,20 +1,13 @@
-import { CreateRequest, CreateResponse, UpdateRequest, UpdateResponse } from '@elastic/elasticsearch/lib/api/types';
-import { ChangeStreamInsertDocument, UpdateDescription } from 'mongodb';
-import {
-	CanNotCreateDocumentAtElasticSearchException,
-	CanNotUpdateDocumentAtElasticSearchException,
-} from '../errors/errors';
-import { ElasticClient } from './elastic-client';
+import { CreateRequest, CreateResponse } from '@elastic/elasticsearch/lib/api/types';
+import { ChangeStreamInsertDocument } from 'mongodb';
 import { ElasticQueryResult } from '../types/result.type';
+import { ElasticClient } from './elastic-client';
 
-export class CreateElastic {
-	private elasticClient: ElasticClient;
-
-	constructor(elasticClient: ElasticClient) {
-		this.elasticClient = elasticClient;
-	}
-
-	async handle(changeEvent: ChangeStreamInsertDocument): Promise<ElasticQueryResult> {
+export namespace Insert {
+	export async function handle(
+		changeEvent: ChangeStreamInsertDocument,
+		elasticClient: ElasticClient
+	): Promise<ElasticQueryResult> {
 		console.log({ changeEvent });
 		const { _id, ...newDocument } = Object.assign({}, changeEvent.fullDocument);
 		const params: CreateRequest = {
@@ -22,7 +15,7 @@ export class CreateElastic {
 			index: changeEvent.ns.coll,
 			document: newDocument,
 		};
-		const createdDocument: CreateResponse = await this.elasticClient.client.create(params);
+		const createdDocument: CreateResponse = await elasticClient.client.create(params);
 		if (createdDocument.result === 'created') {
 			return { ok: true };
 		} else {

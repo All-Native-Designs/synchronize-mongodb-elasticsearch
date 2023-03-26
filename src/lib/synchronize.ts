@@ -1,7 +1,7 @@
 import { ChangeStreamDocument } from 'mongodb';
-import { CreateElastic, DeleteElastic, UpdateElastic } from './elastic';
+import { Delete, Insert, Update } from './elastic';
 import { ElasticClient } from './elastic/elastic-client';
-import { MongoDbClient } from './mongo/mongodb-client';
+import { MongoDbClient } from './mongodb/mongodb-client';
 import { ElasticOptions, ElasticQueryResult, MongoDbOptions } from './types';
 
 export class SyncMongoDbWithElasticSearch {
@@ -48,14 +48,11 @@ export class SyncMongoDbWithElasticSearch {
 	private async syncWithElastic(changeEvent: ChangeStreamDocument): Promise<ElasticQueryResult> {
 		switch (changeEvent.operationType) {
 			case 'insert':
-				const createElastic = new CreateElastic(this.elasticClient);
-				return await createElastic.handle(changeEvent);
+				return await Insert.handle(changeEvent, this.elasticClient);
 			case 'update':
-				const updateElastic = new UpdateElastic(this.mongoDbClient, this.elasticClient);
-				return await updateElastic.handle(changeEvent);
+				return await Update.handle(changeEvent, this.mongoDbClient, this.elasticClient);
 			case 'delete':
-				const deleteElastic = new DeleteElastic(this.elasticClient);
-				return await deleteElastic.handle(changeEvent);
+				return await Delete.handle(changeEvent, this.elasticClient);
 			default:
 				break;
 		}
