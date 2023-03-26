@@ -15,24 +15,32 @@ export namespace Update {
 		// we delete the old document and insert the new one
 		const getNewDocument = async () =>
 			await mongoDbClient.getDb().collection(changeEvent.ns.coll).findOne({ _id: changeEvent.documentKey._id });
-		const deleteParams: DeleteRequest = { id: changeEvent.documentKey._id.toString(), index: changeEvent.ns.coll };
-		const deleteOldDocument = async () => await elasticClient.client.delete(deleteParams);
-		const [getResult, deleteResult] = await Promise.allSettled([getNewDocument(), deleteOldDocument()]);
 
-		if (getResult.status === 'rejected') {
+		const getOldDocument = async () =>
+			await elasticClient.client.get({ id: changeEvent.documentKey._id.toString(), index: changeEvent.ns.coll });
+
+		const [getNewResult, getOldResult] = await Promise.allSettled([getNewDocument(), getOldDocument()]);
+
+		if (getNewResult.status === 'rejected') {
 			throw new CanNotGetDocumentFromMongoDBException();
-		} else if (!getResult.value) {
+		} else if (!getNewResult.value) {
 			throw new CanNotGetDocumentFromMongoDBException();
 		}
 
-		if (deleteResult.status === 'rejected') {
-			if (deleteResult.reason?.meta?.body?.result !== 'not_found') {
+		if (getOldResult.status === 'fulfilled') {
+			const deleteParams: DeleteRequest = {
+				id: changeEvent.documentKey._id.toString(),
+				index: changeEvent.ns.coll,
+			};
+			try {
+				await elasticClient.client.delete(deleteParams);
+			} catch (error) {
 				throw new CanNotDeleteDocumentAtElasticSearchException();
 			}
 		}
 
 		// insert the new document into ElasticSearch
-		const { _id, ...newDocument } = Object.assign({}, getResult.value);
+		const { _id, ...newDocument } = Object.assign({}, getNewResult.value);
 		const createParams: CreateRequest = {
 			id: changeEvent.documentKey._id.toString(),
 			index: changeEvent.ns.coll,
