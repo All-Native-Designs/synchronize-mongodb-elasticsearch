@@ -46,3 +46,10 @@ export class CanNotGetDocumentFromMongoDBException extends Error {
 		throw new Error(`Can not get document from MongoDB.`);
 	}
 }
+
+export class DoNotSupplyIdInDocumentException extends Error {
+	constructor() {
+		super();
+		throw new Error(`Do not supply "_id" in the document. "_id" is served for ElasticSearch.`);
+	}
+}

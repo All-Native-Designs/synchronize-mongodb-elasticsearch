@@ -1,5 +1,4 @@
 import { ChangeStreamDocument } from 'mongodb';
-import { Delete, Insert, Update } from './elastic';
 import { ElasticClient } from './elastic/elastic-client';
 import { MongoDbClient } from './mongodb/mongodb-client';
 import { ElasticOptions, ElasticQueryResult, MongoDbOptions } from './types';
@@ -24,7 +23,7 @@ export class SyncMongoDbWithElasticSearch {
 		// get change stream of database collections
 		const collectionsChangeStream = this.mongoDbClient.getCollectionsStream();
 
-		// start watching on changes for each collection
+		// start synchronizing MongoDB with ElasticSearch and watching changes for each collection
 		for (const collectionChangeStream of collectionsChangeStream) {
 			collectionChangeStream.on('change', (changeEvent) => {
 				this.manageEvents(changeEvent);
@@ -46,16 +45,35 @@ export class SyncMongoDbWithElasticSearch {
 	 * @returns
 	 */
 	private async syncWithElastic(changeEvent: ChangeStreamDocument): Promise<ElasticQueryResult> {
+		// if pipeline is determined
 		switch (changeEvent.operationType) {
 			case 'insert':
-				return await Insert.handle(changeEvent, this.elasticClient);
 			case 'update':
-				return await Update.handle(changeEvent, this.mongoDbClient, this.elasticClient);
 			case 'delete':
-				return await Delete.handle(changeEvent, this.elasticClient);
+				const pipeline = this.mongoDbClient.getPipeline(changeEvent.ns.coll);
+				if (pipeline) {
+					return await this.elasticClient.aggregate(changeEvent, this.mongoDbClient.getDb(), pipeline);
+				}
+				break;
 			default:
 				break;
 		}
+
+		// if pipeline is not determined
+		switch (changeEvent.operationType) {
+			case 'insert': {
+				return await this.elasticClient.insert(changeEvent);
+			}
+			case 'update': {
+				return await this.elasticClient.update(changeEvent, this.mongoDbClient.getDb());
+			}
+			case 'delete': {
+				return await this.elasticClient.delete(changeEvent);
+			}
+			default:
+				break;
+		}
+
 		return {
 			ok: false,
 		};

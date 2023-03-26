@@ -7,23 +7,23 @@ import {
 import { MongoDbOptions } from '../types/mongo.type';
 
 export class MongoDbClient {
-	private mongoOptions: MongoDbOptions;
+	private mongoDbOptions: MongoDbOptions;
 	client!: MongoClient;
 	private db!: Db;
 
-	constructor(mongoOptions: MongoDbOptions) {
-		this.checkOptions(mongoOptions);
-		this.mongoOptions = mongoOptions;
+	constructor(mongoDbOptions: MongoDbOptions) {
+		this.checkOptions(mongoDbOptions);
+		this.mongoDbOptions = mongoDbOptions;
 	}
 
-	private checkOptions(options: MongoDbOptions) {
-		if (options.uri.length === 0) throw new VariableNotSetException('MongoDb uri');
-		if (options.dbName.length === 0) throw new VariableNotSetException('MongoDb database name');
+	private checkOptions(mongoDbOptions: MongoDbOptions) {
+		if (mongoDbOptions.uri.length === 0) throw new VariableNotSetException('MongoDb uri');
+		if (mongoDbOptions.dbName.length === 0) throw new VariableNotSetException('MongoDb database name');
 	}
 
 	private getMongoClient() {
 		try {
-			const client = new MongoClient(this.mongoOptions.uri);
+			const client = new MongoClient(this.mongoDbOptions.uri);
 			return client;
 		} catch (error) {
 			throw new CanNotCreateMongoClientException();
@@ -33,7 +33,7 @@ export class MongoDbClient {
 	async createConnection() {
 		const client = this.getMongoClient();
 		this.client = await client.connect();
-		this.db = client.db(this.mongoOptions.dbName);
+		this.db = client.db(this.mongoDbOptions.dbName);
 	}
 
 	getDb() {
@@ -41,10 +41,10 @@ export class MongoDbClient {
 	}
 
 	getCollectionsStream(): ChangeStream[] {
-		const collectionNames = this.mongoOptions.collections;
+		const collectionNames = this.mongoDbOptions.collections;
 		const collectionsChangeStream: ChangeStream[] = [];
 		if (collectionNames && collectionNames.length > 0) {
-			collectionsChangeStream.push(...this.getCollectionsChangeStream(collectionNames));
+			collectionsChangeStream.push(...this.getCollectionsChangeStream(collectionNames.map((coll) => coll.name)));
 		}
 		return collectionsChangeStream;
 	}
@@ -59,5 +59,10 @@ export class MongoDbClient {
 			collectionsChangeStream.push(collection.watch());
 		}
 		return collectionsChangeStream;
+	}
+
+	getPipeline(collection: string) {
+		const collPipeline = this.mongoDbOptions.collections?.find((coll) => coll.name === collection);
+		return collPipeline?.pipeline;
 	}
 }

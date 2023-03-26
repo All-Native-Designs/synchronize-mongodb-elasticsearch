@@ -1,25 +1,24 @@
-import { CreateRequest, DeleteRequest } from '@elastic/elasticsearch/lib/api/types';
-import { ChangeStreamUpdateDocument } from 'mongodb';
+import { CreateRequest } from '@elastic/elasticsearch/lib/api/types';
+import { Db, ObjectId } from 'mongodb';
 import { CanNotDeleteDocumentAtElasticSearchException, CanNotGetDocumentFromMongoDBException } from '../errors';
-import { MongoDbClient } from '../mongodb/mongodb-client';
 import { ElasticQueryResult } from '../types/result.type';
+import { Delete } from './delete';
 import { ElasticClient } from './elastic-client';
 
 export namespace Update {
 	export async function handle(
-		changeEvent: ChangeStreamUpdateDocument,
-		mongoDbClient: MongoDbClient,
+		id: string,
+		collection: string,
+		mongoDb: Db,
 		elasticClient: ElasticClient
 	): Promise<ElasticQueryResult> {
 		// instead of updating the document at ElasticSearch,
 		// we delete the old document and insert the new one
-		const getNewDocument = async () =>
-			await mongoDbClient.getDb().collection(changeEvent.ns.coll).findOne({ _id: changeEvent.documentKey._id });
+		const getNewDocument = async () => await mongoDb.collection(collection).findOne({ _id: new ObjectId(id) });
 
-		const getOldDocument = async () =>
-			await elasticClient.client.get({ id: changeEvent.documentKey._id.toString(), index: changeEvent.ns.coll });
+		const deleteOldDocument = async () => await Delete.deleteExistence(id, collection, elasticClient);
 
-		const [getNewResult, getOldResult] = await Promise.allSettled([getNewDocument(), getOldDocument()]);
+		const [getNewResult, deleteOldResult] = await Promise.allSettled([getNewDocument(), deleteOldDocument()]);
 
 		if (getNewResult.status === 'rejected') {
 			throw new CanNotGetDocumentFromMongoDBException();
@@ -27,23 +26,15 @@ export namespace Update {
 			throw new CanNotGetDocumentFromMongoDBException();
 		}
 
-		if (getOldResult.status === 'fulfilled') {
-			const deleteParams: DeleteRequest = {
-				id: changeEvent.documentKey._id.toString(),
-				index: changeEvent.ns.coll,
-			};
-			try {
-				await elasticClient.client.delete(deleteParams);
-			} catch (error) {
-				throw new CanNotDeleteDocumentAtElasticSearchException();
-			}
+		if (deleteOldResult.status === 'rejected') {
+			throw new CanNotDeleteDocumentAtElasticSearchException();
 		}
 
 		// insert the new document into ElasticSearch
 		const { _id, ...newDocument } = Object.assign({}, getNewResult.value);
 		const createParams: CreateRequest = {
-			id: changeEvent.documentKey._id.toString(),
-			index: changeEvent.ns.coll,
+			id,
+			index: collection,
 			document: newDocument,
 		};
 		const createdDocument = await elasticClient.client.create(createParams);
