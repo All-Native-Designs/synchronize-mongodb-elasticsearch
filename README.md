@@ -12,6 +12,8 @@ When using this package, please pay attention to the following notes:
 
 -   The same "\_id" (from MongoDB) has been used as the id of the documents in ElasticSearch server.
 
+-   Initial synchronization of MongoDB data with ElasticSearch server has been implemented with bulk insert. Synchronization is done once the `start` method is called. By default, bulkSize is 100.
+
 ## Example
 
 Add the following script to your main file or where you want to start synchronizing MongoDB with ElasticSearch.

@@ -1,6 +1,6 @@
 {
 	"name": "synchronize-mongodb-elasticsearch",
-	"version": "0.0.7",
+	"version": "0.0.8",
 	"description": "This package is for watching MongoDB change events and synchronize changes with ElasticSearch.",
 	"main": "dist/index.js",
 	"module": "esm/index.js",
