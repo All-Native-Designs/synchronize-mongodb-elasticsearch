@@ -20,6 +20,9 @@ export class SyncMongoDbWithElasticSearch {
 		// create elastic search client
 		this.elasticClient.createConnection();
 
+		// initial synchronization
+		await this.transferDataFromMongoDbToElasticSearch();
+
 		// get change stream of database collections
 		const collectionsChangeStream = this.mongoDbClient.getCollectionsStream();
 
@@ -28,6 +31,21 @@ export class SyncMongoDbWithElasticSearch {
 			collectionChangeStream.on('change', (changeEvent) => {
 				this.manageEvents(changeEvent);
 			});
+		}
+	}
+
+	private async transferDataFromMongoDbToElasticSearch() {
+		if (!this.mongoDbClient.collections) return;
+		for (const collection of this.mongoDbClient.collections) {
+			const pipeline = collection.pipeline;
+			if (pipeline) {
+				return await this.elasticClient.aggregate(collection.name, this.mongoDbClient.getDb(), pipeline);
+			}
+			await this.elasticClient.fillWithMongoDbData(
+				collection.name,
+				this.mongoDbClient.getDb(),
+				this.mongoDbClient.batchSize
+			);
 		}
 	}
 
@@ -52,7 +70,11 @@ export class SyncMongoDbWithElasticSearch {
 			case 'delete':
 				const pipeline = this.mongoDbClient.getPipeline(changeEvent.ns.coll);
 				if (pipeline) {
-					return await this.elasticClient.aggregate(changeEvent, this.mongoDbClient.getDb(), pipeline);
+					return await this.elasticClient.aggregate(
+						changeEvent.ns.coll,
+						this.mongoDbClient.getDb(),
+						pipeline
+					);
 				}
 				break;
 			default:

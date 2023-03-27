@@ -1,9 +1,8 @@
 import { DeleteRequest, DeleteResponse } from '@elastic/elasticsearch/lib/api/types';
-import { ChangeStreamDeleteDocument } from 'mongodb';
-import { ElasticClient } from '.';
-import { ElasticQueryResult } from '../types/result.type';
-import { CanNotDeleteDocumentAtElasticSearchException } from '../errors';
 import { ResponseError } from '@elastic/transport/lib/errors';
+import { ElasticClient } from '.';
+import { CanNotDeleteDocumentAtElasticSearchException } from '../errors';
+import { ElasticQueryResult } from '../types/result.type';
 
 export namespace Delete {
 	export async function handle(id: string, index: string, elasticClient: ElasticClient): Promise<ElasticQueryResult> {

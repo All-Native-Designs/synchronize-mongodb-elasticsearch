@@ -49,6 +49,14 @@ export class MongoDbClient {
 		return collectionsChangeStream;
 	}
 
+	get collections() {
+		return this.mongoDbOptions.collections;
+	}
+
+	get batchSize() {
+		return this.mongoDbOptions.batchSize;
+	}
+
 	private getCollectionsChangeStream(collectionNames: string[]) {
 		const collectionsChangeStream: ChangeStream[] = [];
 		for (const collectionName of collectionNames) {
